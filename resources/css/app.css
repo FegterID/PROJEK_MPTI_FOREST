@@ -1,0 +1,30 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/*
+ * Palet warna diambil dari :root di assets/css/style.css project PHP
+ * native (tema krem/terracotta Septyaa Beauty Bar), dipetakan jadi
+ * Tailwind v4 theme token lewat @theme (CSS-first config, tanpa
+ * tailwind.config.js terpisah).
+ */
+@theme {
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+
+    --color-bg: #f5f0eb;
+    --color-surface: #faf7f3;
+    --color-surface-light: #f0ebe5;
+    --color-ink: #2c2c2c;
+    --color-ink-muted: #888888;
+    --color-accent: #be6136;
+    --color-accent-dark: #a84d2a;
+    --color-line: #e0d5cc;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+}
