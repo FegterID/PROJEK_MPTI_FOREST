@@ -1,11 +1,9 @@
 <?php $__env->startSection('content'); ?>
 <div class="grid min-h-screen lg:grid-cols-2">
-    <div class="relative hidden overflow-hidden bg-ink lg:flex lg:items-center lg:justify-center">
-        <div class="absolute inset-0 bg-gradient-to-br from-accent-dark via-ink to-ink opacity-90"></div>
-        <p class="relative z-10 max-w-xs px-10 text-center font-serif text-3xl font-medium leading-snug text-white">
-            Where beauty finds<br>
-            <em>its quiet rhythm.</em>
-        </p>
+    <div class="relative hidden overflow-hidden bg-ink lg:flex lg:items-center lg:justify-center bg-cover bg-center"
+        style="background-image: url('<?php echo e(asset('images/stock/auth-panel.jpg')); ?>');">
+
+        <div class="absolute inset-0 bg-gradient-to-br from-accent-dark via-ink to-ink opacity-70"></div>
     </div>
 
     <div class="relative flex items-center justify-center px-6 py-16">
@@ -15,10 +13,7 @@
 
         <div class="w-full max-w-sm">
             <p class="font-serif text-lg font-semibold text-ink"><?php echo e($siteConfig['name']); ?></p>
-            <h1 class="mt-2 font-serif text-3xl font-semibold text-ink">Welcome Back</h1>
-            <p class="mt-1 text-xs font-medium uppercase tracking-wider text-ink-muted">
-                Login required to book or purchase
-            </p>
+
 
             <?php if($errors->any()): ?>
                 <div class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -31,10 +26,10 @@
                 <?php echo csrf_field(); ?>
                 <div>
                     <label for="login_id" class="block text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                        Email / Username
+                        Email
                     </label>
                     <input type="text" id="login_id" name="login_id" value="<?php echo e(old('login_id')); ?>" required
-                           placeholder="name@example.com"
+                           placeholder="Masukan Email"
                            class="mt-2 w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20">
                 </div>
 
@@ -53,11 +48,10 @@
             </form>
 
             <p class="mt-6 text-center text-sm text-ink-muted">
-                Don't have an account?
+                Belum Punya Akun?
                 <a href="<?php echo e(route('register')); ?>" class="font-medium text-accent hover:underline">Register</a>
             </p>
 
-            <p class="mt-8 text-center text-xs text-ink-muted">&copy; <?php echo e(date('Y')); ?> <?php echo e($siteConfig['name']); ?>. All rights reserved.</p>
         </div>
     </div>
 </div>
