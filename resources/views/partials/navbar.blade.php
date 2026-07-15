@@ -1,7 +1,6 @@
 <header class="border-b border-line bg-surface/80 backdrop-blur">
     <div class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
         <a href="{{ route('home') }}" class="group">
-            <span class="block text-[11px] font-medium uppercase tracking-[0.2em] text-ink-muted">Est. 2026</span>
             <span class="font-serif text-2xl font-semibold text-ink group-hover:text-accent transition-colors">
                 {{ $siteConfig['name'] }}
             </span>
