@@ -48,14 +48,13 @@
                     <?php if (! (auth()->user()->isAdmin())): ?>
                         <a href="<?php echo e(route('bookings.mine')); ?>"
                             class="<?php echo e(request()->routeIs('bookings.mine') ? 'text-accent' : 'text-ink-muted hover:text-accent'); ?> text-xs">
-                            Booking Saya
+                            Riwayat
                         </a>
                         <a href="<?php echo e(route('account.edit')); ?>"
                             class="<?php echo e(request()->routeIs('account.*') ? 'text-accent' : 'text-ink-muted hover:text-accent'); ?> text-xs">
                             Akun Saya
                         </a>
                     <?php endif; ?>
-                    <span class="text-ink-muted">Hai, <?php echo e(explode(' ', auth()->user()->name)[0]); ?></span>
                     <form method="POST" action="<?php echo e(route('logout')); ?>">
                         <?php echo csrf_field(); ?>
                         <button type="submit"

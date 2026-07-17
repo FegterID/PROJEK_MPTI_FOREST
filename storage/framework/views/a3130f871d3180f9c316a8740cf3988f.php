@@ -41,7 +41,7 @@
             font-weight: 300;
         }
         .invoice-title {
-            font-size: 14px;
+            font-size: 13px;
             letter-spacing: 2px;
             color: #FFFFFF;
             text-transform: uppercase;
@@ -61,40 +61,51 @@
             font-size: 14px;
             line-height: 1.6;
             color: #555555;
-            margin-bottom: 30px;
-        }
-        .invoice-card {
-            background-color: #FAF8F5;
-            border-left: 3px solid #C5A880;
-            padding: 25px;
             margin-bottom: 35px;
         }
-        .card-title {
+
+        /* Metadata Ringkasan Atas */
+        .meta-table {
+            width: 100%;
+            margin-bottom: 30px;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 13px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: #1A1A1A;
-            margin: 0 0 15px 0;
-            font-weight: bold;
+            color: #666666;
+            border-bottom: 1px solid #EAE5DC;
+            padding-bottom: 15px;
         }
-        .info-table {
+        .meta-table td { padding: 4px 0; }
+        .meta-value { color: #1A1A1A; font-weight: bold; text-align: right; }
+
+        /* Tabel Rincian Item Invoice */
+        .invoice-table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 35px;
         }
-        .info-table td {
-            padding: 8px 0;
-            font-size: 14px;
-            vertical-align: top;
-        }
-        .info-label {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            color: #888888;
-            width: 35%;
-        }
-        .info-value {
+        .invoice-table th {
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
             color: #1A1A1A;
-            font-weight: bold;
+            border-bottom: 2px solid #1A1A1A;
+            padding: 10px 0;
+            text-align: left;
         }
+        .invoice-table td {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            padding: 15px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #F0EAE1;
+        }
+        .product-name { font-family: 'Georgia', serif; font-weight: bold; color: #1A1A1A; }
+        .text-right { text-align: right; }
+
+        /* Ringkasan Total */
+        .total-row td { border-bottom: none; padding-top: 10px; padding-bottom: 5px; }
+        .grand-total { font-size: 16px; color: #C5A880; font-weight: bold; }
+
+        /* Status Badge */
         .status-badge {
             display: inline-block;
             padding: 3px 10px;
@@ -126,30 +137,11 @@
             border: 1px solid #C5A880;
             transition: all 0.3s ease;
         }
-        .divider {
-            border: 0;
-            border-top: 1px solid #EAE5DC;
-            margin: 30px 0;
-        }
-        .footer-note {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 13px;
-            color: #666666;
-            line-height: 1.5;
-            font-style: italic;
-        }
-        .signature {
-            margin-top: 30px;
-            font-size: 14px;
-        }
-        .footer-bottom {
-            text-align: center;
-            padding: 25px;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 11px;
-            color: #888888;
-            letter-spacing: 1px;
-        }
+
+        .divider { border: 0; border-top: 1px solid #EAE5DC; margin: 30px 0; }
+        .footer-note { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: #666666; line-height: 1.5; font-style: italic; }
+        .signature { margin-top: 30px; font-size: 14px; }
+        .footer-bottom { text-align: center; padding: 25px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; color: #888888; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -159,12 +151,12 @@
         <td align="center">
             <div class="container">
 
-                <!-- HEADER MAJESTIK -->
+                <!-- HEADER BRAND -->
                 <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                         <td class="header">
                             <h1 class="brand-name"><?php echo e(config('site.name', 'Septyaa Beauty Bar')); ?></h1>
-                            <p class="invoice-title"><?php echo e($data['title']); ?></p>
+                            <p class="invoice-title">Official Digital Invoice</p>
                         </td>
                     </tr>
                 </table>
@@ -176,47 +168,75 @@
                             <h2 class="greeting"><?php echo e($data['subtitle']); ?></h2>
                             <p class="main-text"><?php echo \Illuminate\Support\Str::markdown($data['message'] ?? ''); ?></p>
 
-                            <!-- STRUKTUR INVOICE KARTU ELEGAN -->
-                            <div class="invoice-card">
-                                <h3 class="card-title">Ringkasan Detail</h3>
-                                <table class="info-table">
+                            <!-- METADATA TRANSAKSI -->
+                            <table class="meta-table">
+                                <tr>
+                                    <td>No. Reservasi</td>
+                                    <td class="meta-value">#<?php echo e($booking->id); ?></td>
+                                </tr>
+                                <tr>
+                                    <td>Tanggal Jadwal</td>
+                                    <td class="meta-value">
+                                        <?php echo e($booking->booking_date->format('d M Y')); ?>
+
+                                        <?php if(isset($booking->booking_time)): ?>
+                                            - <?php echo e($booking->booking_time->format('H:i')); ?> WIB
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Status Transaksi</td>
+                                    <td class="text-right">
+                                        <span class="status-badge status-<?php echo e($booking->status); ?>">
+                                            <?php echo e($booking->statusLabel()); ?>
+
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- TABEL LAYANAN RESERVASI -->
+                            <table class="invoice-table">
+                                <thead>
                                     <tr>
-                                        <td class="info-label">No. Reservasi</td>
-                                        <td class="info-value">#<?php echo e($booking->id); ?></td>
+                                        <th>Layanan</th>
+                                        <th class="text-right">Durasi / Sesi</th>
+                                        <th class="text-right">Total</th>
                                     </tr>
+                                </thead>
+                                <tbody>
                                     <tr>
-                                        <td class="info-label">Layanan</td>
-                                        <td class="info-value"><?php echo e($booking->service_name); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="info-label">Tanggal</td>
-                                        <td class="info-value"><?php echo e($booking->booking_date->format('d M Y')); ?></td>
-                                    </tr>
-                                    <?php if(isset($booking->booking_time)): ?>
-                                    <tr>
-                                        <td class="info-label">Waktu Jeda</td>
-                                        <td class="info-value"><?php echo e($booking->booking_time->format('H:i')); ?> WIB</td>
-                                    </tr>
-                                    <?php endif; ?>
-                                    <tr>
-                                        <td class="info-label">Status</td>
                                         <td>
-                                            <span class="status-badge status-<?php echo e($booking->status); ?>">
-                                                <?php echo e($booking->statusLabel()); ?>
-
-                                            </span>
+                                            <span class="product-name"><?php echo e($booking->service_name); ?></span>
+                                            <br><small style="color: #888;">Rp <?php echo e(number_format($booking->price ?? ($booking->service->price ?? 0), 0, ',', '.')); ?></small>
                                         </td>
+                                        <td class="text-right" style="color: #666;">1 Sesi</td>
+                                        <td class="text-right font-weight-bold">Rp <?php echo e(number_format($booking->price ?? ($booking->service->price ?? 0), 0, ',', '.')); ?></td>
                                     </tr>
-                                </table>
-                            </div>
 
-                            <!-- TOMBOL UTAMA EMAS/HITAM -->
+                                    <!-- SUB-TOTAL & GRAND TOTAL -->
+                                    <tr class="total-row" style="border-top: 1px solid #1A1A1A;">
+                                        <td colspan="1"></td>
+                                        <td class="text-right" style="color: #666; font-size: 13px;">Subtotal</td>
+                                        <td class="text-right">Rp <?php echo e(number_format($booking->price ?? ($booking->service->price ?? 0), 0, ',', '.')); ?></td>
+                                    </tr>
+                                    <tr class="total-row">
+                                        <td colspan="1"></td>
+                                        <td class="text-right grand-total">Total Akhir</td>
+                                        <td class="text-right grand-total" style="color: #1A1A1A;">Rp <?php echo e(number_format($booking->price ?? ($booking->service->price ?? 0), 0, ',', '.')); ?></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- TOMBOL TINDAKAN (Pembayaran/Detail) -->
+                            <?php if(isset($data['action_url']) && isset($data['action_text'])): ?>
                             <div class="action-container">
                                 <a href="<?php echo e($data['action_url']); ?>" class="btn-luxury">
                                     <?php echo e($data['action_text']); ?>
 
                                 </a>
                             </div>
+                            <?php endif; ?>
 
                             <hr class="divider">
 
@@ -230,7 +250,7 @@
                     </tr>
                 </table>
 
-                <!-- FOOTER HAK CIPTA -->
+                <!-- FOOTER BAWAH -->
                 <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                         <td class="footer-bottom">

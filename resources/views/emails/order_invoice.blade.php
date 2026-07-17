@@ -189,10 +189,10 @@
                                         <td>
                                             <!-- Gantilah 'product_name' / 'product->name' sesuai properti item Anda -->
                                             <span class="product-name">{{ $item->product->name ?? 'Layanan/Produk Kecantikan' }}</span>
-                                            <br><small style="color: #888;">Rp {{ number_format($item->price, 0, ',', '.') }}</small>
+                                            <br><small style="color: #888;">Rp {{ number_format($item->price ?: ($item->product->price ?? 0), 0, ',', '.') }}</small>
                                         </td>
                                         <td class="text-right" style="color: #666;">{{ $item->quantity }}x</td>
-                                        <td class="text-right font-weight-bold">Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}</td>
+                                        <td class="text-right font-weight-bold">Rp {{ number_format(($item->price ?: ($item->product->price ?? 0)) * $item->quantity, 0, ',', '.') }}</td>
                                     </tr>
                                     @endforeach
 

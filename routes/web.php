@@ -64,6 +64,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-account', [AccountController::class, 'edit'])->name('account.edit');
     Route::put('/my-account', [AccountController::class, 'update'])->name('account.update');
     Route::put('/my-account/password', [AccountController::class, 'updatePassword'])->name('account.password');
+
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 });
 
 // Khusus admin — setara requireAdmin() di project lama.

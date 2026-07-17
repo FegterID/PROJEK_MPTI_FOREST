@@ -46,14 +46,13 @@
                     @unless (auth()->user()->isAdmin())
                         <a href="{{ route('bookings.mine') }}"
                             class="{{ request()->routeIs('bookings.mine') ? 'text-accent' : 'text-ink-muted hover:text-accent' }} text-xs">
-                            Booking Saya
+                            Riwayat
                         </a>
                         <a href="{{ route('account.edit') }}"
                             class="{{ request()->routeIs('account.*') ? 'text-accent' : 'text-ink-muted hover:text-accent' }} text-xs">
                             Akun Saya
                         </a>
                     @endunless
-                    <span class="text-ink-muted">Hai, {{ explode(' ', auth()->user()->name)[0] }}</span>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"

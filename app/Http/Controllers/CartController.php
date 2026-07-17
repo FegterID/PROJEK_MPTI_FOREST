@@ -31,7 +31,7 @@ class CartController extends Controller
             'customerName' => $user->name ?? 'Nama Pelanggan',
             'customerPhone' => $user->username ?? config('site.phone'),
             'customerEmail' => $user->email ?? 'email@example.com',
-            'customerAddress' => $user->address ?: config('site.address'),
+            'customerAddress' => $user->address ?? config('site.address'),
         ]);
     }
 
