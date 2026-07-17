@@ -1,7 +1,7 @@
 <?php $__env->startSection('title', 'Orders'); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="mb-6 grid grid-cols-3 gap-4">
+<div class="mb-6 grid grid-cols-4 gap-4">
     <div class="rounded-xl border border-line bg-surface p-4 text-center">
         <p class="text-xs text-ink-muted">Total Pesanan</p>
         <p class="mt-1 text-xl font-semibold text-ink"><?php echo e($totalOrders); ?></p>
@@ -13,6 +13,10 @@
     <div class="rounded-xl border border-line bg-surface p-4 text-center">
         <p class="text-xs text-ink-muted">Menunggu</p>
         <p class="mt-1 text-xl font-semibold text-ink"><?php echo e($pendingOrders); ?></p>
+    </div>
+    <div class="rounded-xl border border-line bg-surface p-4 text-center">
+        <p class="text-xs text-ink-muted">Selesai</p>
+        <p class="mt-1 text-xl font-semibold text-ink"><?php echo e($completedOrders); ?></p>
     </div>
 </div>
 
@@ -61,11 +65,16 @@
                         <form method="POST" action="<?php echo e(route('admin.orders.update', $order)); ?>">
                             <?php echo csrf_field(); ?>
                             <?php echo method_field('PATCH'); ?>
+                            <!-- Filter di atas tabel -->
                             <select name="status" onchange="this.form.submit()"
-                                    class="rounded-lg border border-line bg-white px-2 py-1.5 text-xs">
-                                <option value="pending" <?php if($order->status === 'pending'): echo 'selected'; endif; ?>>Pending</option>
-                                <option value="paid" <?php if($order->status === 'paid'): echo 'selected'; endif; ?>>Paid</option>
-                                <option value="cancelled" <?php if($order->status === 'cancelled'): echo 'selected'; endif; ?>>Cancelled</option>
+                                    class="rounded-lg border border-line bg-white px-3 py-2 text-sm">
+                                <option value="" <?php if($filterStatus === ''): echo 'selected'; endif; ?>>Semua Status</option>
+                                <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($status); ?>" <?php if($filterStatus === $status): echo 'selected'; endif; ?>>
+                                        <?php echo e(\App\Models\Order::STATUS_LABELS[$status]); ?>
+
+                                    </option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </form>
                     </td>

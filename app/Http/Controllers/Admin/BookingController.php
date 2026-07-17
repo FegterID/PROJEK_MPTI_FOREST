@@ -7,6 +7,9 @@ use App\Models\Booking;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookingInvoiceMail;
+use App\Notifications\BookingStatusNotification;
 
 class BookingController extends Controller
 {
@@ -19,7 +22,7 @@ class BookingController extends Controller
         $filterStatus = trim((string) $request->query('status', ''));
 
         $bookings = Booking::query()
-            ->when($filterStatus !== '', fn ($q) => $q->where('status', $filterStatus))
+            ->when($filterStatus !== '', fn($q) => $q->where('status', $filterStatus))
             ->orderByDesc('booking_date')
             ->orderByDesc('booking_time')
             ->paginate(10)
@@ -38,10 +41,14 @@ class BookingController extends Controller
     public function updateStatus(Request $request, Booking $booking): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'in:'.implode(',', Booking::STATUSES)],
+            'status' => ['required', 'in:' . implode(',', Booking::STATUSES)],
         ]);
 
         $booking->update(['status' => $validated['status']]);
+
+        if ($booking->wasChanged('status')) { // [BARU] cuma kirim kalau status beneran berubah
+            $booking->user?->notify(new BookingStatusNotification($booking));
+        }
 
         return redirect()->route('admin.bookings.index')->with('success', 'Status booking berhasil diperbarui.');
     }

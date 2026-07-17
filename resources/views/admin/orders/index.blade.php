@@ -3,7 +3,7 @@
 @section('title', 'Orders')
 
 @section('content')
-<div class="mb-6 grid grid-cols-3 gap-4">
+<div class="mb-6 grid grid-cols-4 gap-4">
     <div class="rounded-xl border border-line bg-surface p-4 text-center">
         <p class="text-xs text-ink-muted">Total Pesanan</p>
         <p class="mt-1 text-xl font-semibold text-ink">{{ $totalOrders }}</p>
@@ -15,6 +15,10 @@
     <div class="rounded-xl border border-line bg-surface p-4 text-center">
         <p class="text-xs text-ink-muted">Menunggu</p>
         <p class="mt-1 text-xl font-semibold text-ink">{{ $pendingOrders }}</p>
+    </div>
+    <div class="rounded-xl border border-line bg-surface p-4 text-center">
+        <p class="text-xs text-ink-muted">Selesai</p>
+        <p class="mt-1 text-xl font-semibold text-ink">{{ $completedOrders }}</p>
     </div>
 </div>
 
@@ -62,11 +66,15 @@
                         <form method="POST" action="{{ route('admin.orders.update', $order) }}">
                             @csrf
                             @method('PATCH')
+                            <!-- Filter di atas tabel -->
                             <select name="status" onchange="this.form.submit()"
-                                    class="rounded-lg border border-line bg-white px-2 py-1.5 text-xs">
-                                <option value="pending" @selected($order->status === 'pending')>Pending</option>
-                                <option value="paid" @selected($order->status === 'paid')>Paid</option>
-                                <option value="cancelled" @selected($order->status === 'cancelled')>Cancelled</option>
+                                    class="rounded-lg border border-line bg-white px-3 py-2 text-sm">
+                                <option value="" @selected($filterStatus === '')>Semua Status</option>
+                                @foreach ($statuses as $status)
+                                    <option value="{{ $status }}" @selected($filterStatus === $status)>
+                                        {{ \App\Models\Order::STATUS_LABELS[$status] }}
+                                    </option>
+                                @endforeach
                             </select>
                         </form>
                     </td>

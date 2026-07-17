@@ -9,6 +9,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookingInvoiceMail;
+use App\Notifications\BookingStatusNotification;
 
 class BookingController extends Controller
 {
@@ -36,10 +39,10 @@ class BookingController extends Controller
             'phone' => ['required', 'string', 'max:25'],
             'service' => ['required', 'string'],
             'date' => ['required', 'date_format:Y-m-d'],
-            'time' => ['required', 'in:'.implode(',', Booking::TIME_SLOTS)],
+            'time' => ['required', 'in:' . implode(',', Booking::TIME_SLOTS)],
         ]);
 
-        $bookingDateTime = \DateTime::createFromFormat('Y-m-d H:i', $validated['date'].' '.$validated['time']);
+        $bookingDateTime = \DateTime::createFromFormat('Y-m-d H:i', $validated['date'] . ' ' . $validated['time']);
         if ($bookingDateTime === false || $bookingDateTime < new \DateTime()) {
             return redirect()->route('booking.create')->withErrors([
                 'date' => 'Tanggal/jam booking tidak valid atau sudah lewat.',
@@ -59,7 +62,7 @@ class BookingController extends Controller
 
         $service = Service::where('name', $validated['service'])->first();
 
-        Booking::create([
+        $booking = Booking::create([
             'user_id' => Auth::id(),
             'customer_name' => $validated['name'],
             'whatsapp' => $validated['phone'],
@@ -70,7 +73,9 @@ class BookingController extends Controller
             'status' => 'pending',
         ]);
 
-        return redirect()->route('booking.create')->with('success', 'Reservasi berhasil dikirim. Tim kami akan konfirmasi via WhatsApp.');
+         Auth::user()->notify(new BookingStatusNotification($booking));
+
+        return redirect()->route('booking.create')->with('success', 'Reservasi berhasil dikirim. Tim kami akan konfirmasi via Email.');
     }
 
     /**
@@ -87,14 +92,14 @@ class BookingController extends Controller
         $bookedSlots = Booking::where('booking_date', $date)
             ->whereIn('status', ['pending', 'confirmed'])
             ->get()
-            ->map(fn (Booking $booking) => $booking->booking_time->format('H:i'))
+            ->map(fn(Booking $booking) => $booking->booking_time->format('H:i'))
             ->unique()
             ->values();
 
         if ($date === now()->toDateString()) {
             $now = now()->format('H:i');
             $bookedSlots = $bookedSlots->merge(
-                collect(Booking::TIME_SLOTS)->filter(fn ($slot) => $slot <= $now)
+                collect(Booking::TIME_SLOTS)->filter(fn($slot) => $slot <= $now)
             )->unique()->values();
         }
 

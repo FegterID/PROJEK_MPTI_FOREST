@@ -7,6 +7,34 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @property int $id
+ * @property string $category
+ * @property string $category_name
+ * @property string $name
+ * @property string $description
+ * @property string|null $image
+ * @property int $duration
+ * @property int|null $price
+ * @property string|null $price_range
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service whereCategory($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service whereCategoryName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service whereDuration($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service whereImage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service wherePrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service wherePriceRange($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Service whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 #[Fillable(['category', 'category_name', 'name', 'description', 'image', 'duration', 'price', 'price_range'])]
 class Service extends Model
 {

@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use App\Notifications\OrderStatusNotification; // [BARU]
+use App\Http\Controllers\Controller;
 
 class CartController extends Controller
 {
@@ -101,7 +103,7 @@ class CartController extends Controller
         $user = Auth::user();
         $subtotal = Cart::subtotal();
 
-        DB::transaction(function () use ($cartItems, $user, $subtotal, $request) {
+        $order = DB::transaction(function () use ($cartItems, $user, $subtotal, $request) { // [UBAH] tangkap return value
             $order = Order::create([
                 'order_number' => Order::generateOrderNumber(),
                 'user_id' => $user?->id,
@@ -126,7 +128,15 @@ class CartController extends Controller
                     'subtotal' => $item['price'] * $item['quantity'],
                 ]);
             }
+
+            return $order; // [BARU]
         });
+
+        // [BARU] Guest checkout tanpa akun bisa saja tidak punya email,
+        // jadi notifikasi cuma dikirim kalau customer_email terisi.
+        if ($order->customer_email) {
+            $order->load('items')->notify(new OrderStatusNotification($order));
+        }
 
         Cart::clear();
 

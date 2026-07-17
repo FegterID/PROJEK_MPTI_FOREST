@@ -8,6 +8,33 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @property int $id
+ * @property string $category
+ * @property string $name
+ * @property string $description
+ * @property string|null $image
+ * @property int $price
+ * @property int $stock
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static Builder<static>|Product active()
+ * @method static Builder<static>|Product newModelQuery()
+ * @method static Builder<static>|Product newQuery()
+ * @method static Builder<static>|Product query()
+ * @method static Builder<static>|Product whereCategory($value)
+ * @method static Builder<static>|Product whereCreatedAt($value)
+ * @method static Builder<static>|Product whereDescription($value)
+ * @method static Builder<static>|Product whereId($value)
+ * @method static Builder<static>|Product whereImage($value)
+ * @method static Builder<static>|Product whereIsActive($value)
+ * @method static Builder<static>|Product whereName($value)
+ * @method static Builder<static>|Product wherePrice($value)
+ * @method static Builder<static>|Product whereStock($value)
+ * @method static Builder<static>|Product whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 #[Fillable(['category', 'name', 'description', 'image', 'price', 'stock', 'is_active'])]
 class Product extends Model
 {

@@ -7,6 +7,7 @@ use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Notifications\OrderStatusNotification; // [BARU]
 
 class OrderController extends Controller
 {
@@ -28,7 +29,7 @@ class OrderController extends Controller
                         ->orWhere('customer_name', 'like', "%{$search}%");
                 });
             })
-            ->when($filterStatus !== '', fn ($q) => $q->where('status', $filterStatus))
+            ->when($filterStatus !== '', fn($q) => $q->where('status', $filterStatus))
             ->orderByDesc('created_at')
             ->paginate(10)
             ->withQueryString();
@@ -37,22 +38,30 @@ class OrderController extends Controller
             'orders' => $orders,
             'search' => $search,
             'filterStatus' => $filterStatus,
+            'statuses' => Order::STATUSES, // [BARU]
             'totalOrders' => Order::count(),
             'paidOrders' => Order::where('status', 'paid')->count(),
             'pendingOrders' => Order::where('status', 'pending')->count(),
+            'completedOrders' => Order::where('status', 'completed')->count(), // [BARU]
         ]);
     }
 
     public function updateStatus(Request $request, Order $order): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'in:pending,paid,cancelled'],
+            'status' => ['required', 'in:'.implode(',', Order::STATUSES)], // [UBAH] pakai konstanta, bukan hardcode
         ]);
 
         $order->update(['status' => $validated['status']]);
 
+        if ($order->wasChanged('status') && $order->customer_email) { // [BARU]
+            $order->load('items')->notify(new OrderStatusNotification($order));
+        }
+
         return redirect()->route('admin.orders.index')->with('success', 'Status pesanan berhasil diperbarui.');
     }
+
+
 
     public function destroy(Order $order): RedirectResponse
     {

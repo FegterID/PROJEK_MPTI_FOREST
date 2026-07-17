@@ -1,0 +1,500 @@
+diff --git a/app/Http/Controllers/Admin/BookingController.php b/app/Http/Controllers/Admin/BookingController.php
+index 9b40ba0..e9f6485 100644
+--- a/app/Http/Controllers/Admin/BookingController.php
++++ b/app/Http/Controllers/Admin/BookingController.php
+@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
+
+ use App\Http\Controllers\Controller;
+ use App\Models\Booking;
++use App\Notifications\BookingStatusNotification;
+ use Illuminate\Http\RedirectResponse;
+ use Illuminate\Http\Request;
+ use Illuminate\View\View;
+@@ -43,6 +44,10 @@ class BookingController extends Controller
+
+         $booking->update(['status' => $validated['status']]);
+
++        if ($booking->wasChanged('status')) {
++            $booking->user?->notify(new BookingStatusNotification($booking));
++        }
++
+         return redirect()->route('admin.bookings.index')->with('success', 'Status booking berhasil diperbarui.');
+     }
+
+diff --git a/app/Http/Controllers/Admin/OrderController.php b/app/Http/Controllers/Admin/OrderController.php
+index 5d6fee2..ad34c11 100644
+--- a/app/Http/Controllers/Admin/OrderController.php
++++ b/app/Http/Controllers/Admin/OrderController.php
+@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
+
+ use App\Http\Controllers\Controller;
+ use App\Models\Order;
++use App\Notifications\OrderStatusNotification;
+ use Illuminate\Http\RedirectResponse;
+ use Illuminate\Http\Request;
+ use Illuminate\View\View;
+@@ -37,20 +38,26 @@ class OrderController extends Controller
+             'orders' => $orders,
+             'search' => $search,
+             'filterStatus' => $filterStatus,
++            'statuses' => Order::STATUSES,
+             'totalOrders' => Order::count(),
+             'paidOrders' => Order::where('status', 'paid')->count(),
+             'pendingOrders' => Order::where('status', 'pending')->count(),
++            'completedOrders' => Order::where('status', 'completed')->count(),
+         ]);
+     }
+
+     public function updateStatus(Request $request, Order $order): RedirectResponse
+     {
+         $validated = $request->validate([
+-            'status' => ['required', 'in:pending,paid,cancelled'],
++            'status' => ['required', 'in:'.implode(',', Order::STATUSES)],
+         ]);
+
+         $order->update(['status' => $validated['status']]);
+
++        if ($order->wasChanged('status') && $order->customer_email) {
++            $order->load('items')->notify(new OrderStatusNotification($order));
++        }
++
+         return redirect()->route('admin.orders.index')->with('success', 'Status pesanan berhasil diperbarui.');
+     }
+
+diff --git a/app/Http/Controllers/BookingController.php b/app/Http/Controllers/BookingController.php
+index 8b7640b..9712c29 100644
+--- a/app/Http/Controllers/BookingController.php
++++ b/app/Http/Controllers/BookingController.php
+@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
+
+ use App\Models\Booking;
+ use App\Models\Service;
++use App\Notifications\BookingStatusNotification;
+ use Illuminate\Http\JsonResponse;
+ use Illuminate\Http\RedirectResponse;
+ use Illuminate\Http\Request;
+@@ -59,7 +60,7 @@ class BookingController extends Controller
+
+         $service = Service::where('name', $validated['service'])->first();
+
+-        Booking::create([
++        $booking = Booking::create([
+             'user_id' => Auth::id(),
+             'customer_name' => $validated['name'],
+             'whatsapp' => $validated['phone'],
+@@ -70,6 +71,8 @@ class BookingController extends Controller
+             'status' => 'pending',
+         ]);
+
++        Auth::user()->notify(new BookingStatusNotification($booking));
++
+         return redirect()->route('booking.create')->with('success', 'Reservasi berhasil dikirim. Tim kami akan konfirmasi via WhatsApp.');
+     }
+
+diff --git a/app/Http/Controllers/CartController.php b/app/Http/Controllers/CartController.php
+index cd17b47..3ab7b08 100644
+--- a/app/Http/Controllers/CartController.php
++++ b/app/Http/Controllers/CartController.php
+@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
+
+ use App\Models\Order;
+ use App\Models\OrderItem;
++use App\Notifications\OrderStatusNotification;
+ use App\Support\Cart;
+ use Illuminate\Http\RedirectResponse;
+ use Illuminate\Http\Request;
+@@ -101,7 +102,7 @@ class CartController extends Controller
+         $user = Auth::user();
+         $subtotal = Cart::subtotal();
+
+-        DB::transaction(function () use ($cartItems, $user, $subtotal, $request) {
++        $order = DB::transaction(function () use ($cartItems, $user, $subtotal, $request) {
+             $order = Order::create([
+                 'order_number' => Order::generateOrderNumber(),
+                 'user_id' => $user?->id,
+@@ -126,8 +127,16 @@ class CartController extends Controller
+                     'subtotal' => $item['price'] * $item['quantity'],
+                 ]);
+             }
++
++            return $order;
+         });
+
++        // Guest checkout tanpa akun bisa saja tidak punya email, jadi
++        // notifikasi cuma dikirim kalau customer_email terisi.
++        if ($order->customer_email) {
++            $order->load('items')->notify(new OrderStatusNotification($order));
++        }
++
+         Cart::clear();
+
+         return redirect()->route('cart.index')->with('success', 'Pesanan berhasil diproses. Tim kami akan menghubungi Anda segera.');
+diff --git a/app/Models/Order.php b/app/Models/Order.php
+index e88c14b..f6bed41 100644
+--- a/app/Models/Order.php
++++ b/app/Models/Order.php
+@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
+ use Illuminate\Database\Eloquent\Model;
+ use Illuminate\Database\Eloquent\Relations\BelongsTo;
+ use Illuminate\Database\Eloquent\Relations\HasMany;
++use Illuminate\Notifications\Notifiable;
+
+ #[Fillable([
+     'order_number', 'user_id', 'customer_name', 'customer_email',
+@@ -15,7 +16,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
+ ])]
+ class Order extends Model
+ {
+-    use HasFactory;
++    use HasFactory, Notifiable;
++
++    public const STATUSES = ['pending', 'paid', 'completed', 'cancelled'];
++
++    public const STATUS_LABELS = [
++        'pending' => 'Menunggu',
++        'paid' => 'Dikonfirmasi',
++        'completed' => 'Selesai',
++        'cancelled' => 'Dibatalkan',
++    ];
+
+     protected function casts(): array
+     {
+@@ -44,4 +54,19 @@ class Order extends Model
+
+         return 'SBB-'.str_pad((string) ($count + 1), 4, '0', STR_PAD_LEFT);
+     }
++
++    public function statusLabel(): string
++    {
++        return self::STATUS_LABELS[$this->status] ?? ucfirst($this->status);
++    }
++
++    /**
++     * Order bisa dibuat oleh guest (tidak login), jadi notifikasi email
++     * dialamatkan ke customer_email yang diisi saat checkout, bukan ke
++     * email akun user (yang belum tentu ada).
++     */
++    public function routeNotificationForMail(): ?string
++    {
++        return $this->customer_email;
++    }
+ }
+diff --git a/app/Notifications/BookingStatusNotification.php b/app/Notifications/BookingStatusNotification.php
+new file mode 100644
+index 0000000..0bf9023
+--- /dev/null
++++ b/app/Notifications/BookingStatusNotification.php
+@@ -0,0 +1,106 @@
++<?php
++
++namespace App\Notifications;
++
++use App\Models\Booking;
++use Illuminate\Bus\Queueable;
++use Illuminate\Notifications\Messages\MailMessage;
++use Illuminate\Notifications\Notification;
++
++/**
++ * Invoice / notifikasi email untuk user setiap kali status reservasi
++ * (Booking) berubah:
++ *  - pending   -> dikirim saat user submit reservasi baru
++ *  - confirmed -> dikirim saat admin konfirmasi booking
++ *  - completed -> dikirim saat admin menandai layanan selesai
++ *  - cancelled -> dikirim saat admin/booking dibatalkan
++ *
++ * Dipanggil lewat: $user->notify(new BookingStatusNotification($booking));
++ */
++class BookingStatusNotification extends Notification
++{
++    use Queueable;
++
++    public function __construct(protected Booking $booking)
++    {
++    }
++
++    /**
++     * Channel yang dipakai. Tinggal tambah 'database' di sini kalau nanti
++     * mau tambah notifikasi lonceng di dalam web juga.
++     */
++    public function via(object $notifiable): array
++    {
++        return ['mail'];
++    }
++
++    public function toMail(object $notifiable): MailMessage
++    {
++        return match ($this->booking->status) {
++            'confirmed' => $this->confirmedMail(),
++            'completed' => $this->completedMail(),
++            'cancelled' => $this->cancelledMail(),
++            default => $this->pendingMail(),
++        };
++    }
++
++    protected function pendingMail(): MailMessage
++    {
++        return (new MailMessage)
++            ->subject('Invoice Reservasi #'.$this->booking->id.' — Menunggu Konfirmasi')
++            ->greeting('Halo '.$this->booking->customer_name.',')
++            ->line('Reservasi kamu di '.config('site.name').' berhasil kami terima dan sedang **menunggu konfirmasi** dari tim kami.')
++            ->line('**Detail Reservasi**')
++            ->line('No. Reservasi: #'.$this->booking->id)
++            ->line('Layanan: '.$this->booking->service_name)
++            ->line('Tanggal: '.$this->booking->booking_date->format('d M Y'))
++            ->line('Jam: '.$this->booking->booking_time->format('H:i'))
++            ->line('Status: '.$this->booking->statusLabel())
++            ->action('Lihat Reservasi Saya', route('bookings.mine'))
++            ->line('Kami akan menghubungimu lewat WhatsApp begitu reservasi ini dikonfirmasi.');
++    }
++
++    protected function confirmedMail(): MailMessage
++    {
++        return (new MailMessage)
++            ->subject('Invoice Reservasi #'.$this->booking->id.' — Dikonfirmasi')
++            ->greeting('Halo '.$this->booking->customer_name.',')
++            ->line('Kabar baik! Reservasi kamu di '.config('site.name').' sudah **dikonfirmasi** oleh tim kami.')
++            ->line('**Detail Reservasi**')
++            ->line('No. Reservasi: #'.$this->booking->id)
++            ->line('Layanan: '.$this->booking->service_name)
++            ->line('Tanggal: '.$this->booking->booking_date->format('d M Y'))
++            ->line('Jam: '.$this->booking->booking_time->format('H:i'))
++            ->line('Status: '.$this->booking->statusLabel())
++            ->action('Lihat Reservasi Saya', route('bookings.mine'))
++            ->line('Ditunggu kedatangannya sesuai jadwal ya. Kalau ada perubahan, silakan hubungi kami.');
++    }
++
++    protected function completedMail(): MailMessage
++    {
++        return (new MailMessage)
++            ->subject('Terima Kasih! Layanan #'.$this->booking->id.' Selesai')
++            ->greeting('Halo '.$this->booking->customer_name.',')
++            ->line('Terima kasih sudah menggunakan layanan **'.$this->booking->service_name.'** di '.config('site.name').'.')
++            ->line('Status reservasimu sekarang **'.$this->booking->statusLabel().'**. Semoga kamu puas dengan layanan kami!')
++            ->line('**Detail Reservasi**')
++            ->line('No. Reservasi: #'.$this->booking->id)
++            ->line('Layanan: '.$this->booking->service_name)
++            ->line('Tanggal: '.$this->booking->booking_date->format('d M Y'))
++            ->action('Booking Lagi', route('booking.create'))
++            ->line('Kami tunggu kunjungan berikutnya ya!');
++    }
++
++    protected function cancelledMail(): MailMessage
++    {
++        return (new MailMessage)
++            ->subject('Reservasi #'.$this->booking->id.' Dibatalkan')
++            ->greeting('Halo '.$this->booking->customer_name.',')
++            ->line('Reservasi kamu untuk layanan **'.$this->booking->service_name.'** di '.config('site.name').' telah **dibatalkan**.')
++            ->line('**Detail Reservasi**')
++            ->line('No. Reservasi: #'.$this->booking->id)
++            ->line('Tanggal: '.$this->booking->booking_date->format('d M Y'))
++            ->action('Hubungi via WhatsApp', $this->booking->whatsappLink())
++            ->line('Kalau ini di luar dugaanmu, silakan hubungi kami.');
++    }
++}
+diff --git a/app/Notifications/OrderStatusNotification.php b/app/Notifications/OrderStatusNotification.php
+new file mode 100644
+index 0000000..f41b02f
+--- /dev/null
++++ b/app/Notifications/OrderStatusNotification.php
+@@ -0,0 +1,110 @@
++<?php
++
++namespace App\Notifications;
++
++use App\Models\Order;
++use Illuminate\Bus\Queueable;
++use Illuminate\Notifications\Messages\MailMessage;
++use Illuminate\Notifications\Notification;
++
++/**
++ * Invoice / notifikasi email untuk user setiap kali status pesanan (Order)
++ * berubah:
++ *  - pending   -> dikirim saat user checkout dari halaman cart
++ *  - paid      -> dikirim saat admin konfirmasi pembayaran
++ *  - completed -> dikirim saat admin menandai pesanan selesai
++ *  - cancelled -> dikirim saat pesanan dibatalkan
++ *
++ * Dipanggil lewat: $order->notify(new OrderStatusNotification($order));
++ * (Order pakai trait Notifiable + routeNotificationForMail() supaya bisa
++ * dikirim ke customer_email walau order-nya dibuat oleh guest/tanpa akun.)
++ */
++class OrderStatusNotification extends Notification
++{
++    use Queueable;
++
++    public function __construct(protected Order $order)
++    {
++    }
++
++    public function via(object $notifiable): array
++    {
++        return ['mail'];
++    }
++
++    public function toMail(object $notifiable): MailMessage
++    {
++        return match ($this->order->status) {
++            'paid' => $this->confirmedMail(),
++            'completed' => $this->completedMail(),
++            'cancelled' => $this->cancelledMail(),
++            default => $this->pendingMail(),
++        };
++    }
++
++    protected function pendingMail(): MailMessage
++    {
++        return (new MailMessage)
++            ->subject('Invoice Pesanan '.$this->order->order_number.' — Menunggu Konfirmasi')
++            ->greeting('Halo '.$this->order->customer_name.',')
++            ->line('Pesananmu di '.config('site.name').' sudah kami terima dan sedang **menunggu konfirmasi pembayaran**.')
++            ->line($this->itemsTable())
++            ->line('Total: Rp '.number_format($this->order->total, 0, ',', '.'))
++            ->action('Hubungi via WhatsApp', config('site.whatsapp'))
++            ->line('Silakan selesaikan pembayaran sesuai metode yang dipilih. Tim kami akan mengonfirmasi begitu pembayaran diterima.');
++    }
++
++    protected function confirmedMail(): MailMessage
++    {
++        return (new MailMessage)
++            ->subject('Invoice Pesanan '.$this->order->order_number.' — Dikonfirmasi')
++            ->greeting('Halo '.$this->order->customer_name.',')
++            ->line('Pembayaran untuk pesananmu di '.config('site.name').' sudah **dikonfirmasi**. Terima kasih!')
++            ->line($this->itemsTable())
++            ->line('Total: Rp '.number_format($this->order->total, 0, ',', '.'))
++            ->action('Hubungi via WhatsApp', config('site.whatsapp'))
++            ->line('Pesananmu akan segera kami proses.');
++    }
++
++    protected function completedMail(): MailMessage
++    {
++        return (new MailMessage)
++            ->subject('Terima Kasih! Pesanan '.$this->order->order_number.' Selesai')
++            ->greeting('Halo '.$this->order->customer_name.',')
++            ->line('Pesananmu di '.config('site.name').' sudah **selesai** diproses. Terima kasih banyak sudah berbelanja bersama kami!')
++            ->line($this->itemsTable())
++            ->line('Total: Rp '.number_format($this->order->total, 0, ',', '.'))
++            ->action('Belanja Lagi', route('products.index'))
++            ->line('Semoga produknya sesuai harapan ya!');
++    }
++
++    protected function cancelledMail(): MailMessage
++    {
++        return (new MailMessage)
++            ->subject('Pesanan '.$this->order->order_number.' Dibatalkan')
++            ->greeting('Halo '.$this->order->customer_name.',')
++            ->line('Mohon maaf, pesananmu di '.config('site.name').' telah **dibatalkan**.')
++            ->line($this->itemsTable())
++            ->action('Hubungi via WhatsApp', config('site.whatsapp'))
++            ->line('Kalau ini di luar dugaanmu, silakan hubungi kami.');
++    }
++
++    /**
++     * Rincian item pesanan dalam bentuk tabel markdown (dirender otomatis
++     * jadi tabel HTML oleh mail Laravel). Pastikan $order->items sudah
++     * di-load (eager load) sebelum notifikasi ini dikirim.
++     */
++    protected function itemsTable(): string
++    {
++        $rows = $this->order->items->map(function ($item) {
++            return sprintf(
++                '| %s | %d | Rp %s |',
++                $item->product_name,
++                $item->quantity,
++                number_format($item->subtotal, 0, ',', '.')
++            );
++        })->implode("\n");
++
++        return "| Produk | Qty | Subtotal |\n| :--- | :---: | ---: |\n".$rows;
++    }
++}
+diff --git a/database/migrations/2026_07_17_000001_add_completed_status_to_orders_table.php b/database/migrations/2026_07_17_000001_add_completed_status_to_orders_table.php
+new file mode 100644
+index 0000000..8de7f71
+--- /dev/null
++++ b/database/migrations/2026_07_17_000001_add_completed_status_to_orders_table.php
+@@ -0,0 +1,31 @@
++<?php
++
++use Illuminate\Database\Migrations\Migration;
++use Illuminate\Database\Schema\Blueprint;
++use Illuminate\Support\Facades\Schema;
++
++return new class extends Migration
++{
++    /**
++     * Menambah status 'completed' di antara 'paid' dan 'cancelled'.
++     * Ini yang dipakai admin untuk menandai pesanan sudah selesai
++     * diproses/diambil, sama seperti status 'completed' di bookings.
++     */
++    public function up(): void
++    {
++        Schema::table('orders', function (Blueprint $table) {
++            $table->enum('status', ['pending', 'paid', 'completed', 'cancelled'])
++                ->default('pending')
++                ->change();
++        });
++    }
++
++    public function down(): void
++    {
++        Schema::table('orders', function (Blueprint $table) {
++            $table->enum('status', ['pending', 'paid', 'cancelled'])
++                ->default('pending')
++                ->change();
++        });
++    }
++};
+diff --git a/resources/views/admin/orders/index.blade.php b/resources/views/admin/orders/index.blade.php
+index 3d51e06..b17f440 100644
+--- a/resources/views/admin/orders/index.blade.php
++++ b/resources/views/admin/orders/index.blade.php
+@@ -3,7 +3,7 @@
+ @section('title', 'Orders')
+
+ @section('content')
+-<div class="mb-6 grid grid-cols-3 gap-4">
++<div class="mb-6 grid grid-cols-4 gap-4">
+     <div class="rounded-xl border border-line bg-surface p-4 text-center">
+         <p class="text-xs text-ink-muted">Total Pesanan</p>
+         <p class="mt-1 text-xl font-semibold text-ink">{{ $totalOrders }}</p>
+@@ -16,6 +16,10 @@
+         <p class="text-xs text-ink-muted">Menunggu</p>
+         <p class="mt-1 text-xl font-semibold text-ink">{{ $pendingOrders }}</p>
+     </div>
++    <div class="rounded-xl border border-line bg-surface p-4 text-center">
++        <p class="text-xs text-ink-muted">Selesai</p>
++        <p class="mt-1 text-xl font-semibold text-ink">{{ $completedOrders }}</p>
++    </div>
+ </div>
+
+ <form method="GET" action="{{ route('admin.orders.index') }}" class="mb-4 flex flex-wrap gap-3">
+@@ -24,9 +28,11 @@
+     <select name="status" onchange="this.form.submit()"
+             class="rounded-lg border border-line bg-white px-3 py-2 text-sm">
+         <option value="" @selected($filterStatus === '')>Semua Status</option>
+-        <option value="pending" @selected($filterStatus === 'pending')>Pending</option>
+-        <option value="paid" @selected($filterStatus === 'paid')>Paid</option>
+-        <option value="cancelled" @selected($filterStatus === 'cancelled')>Cancelled</option>
++        @foreach ($statuses as $status)
++            <option value="{{ $status }}" @selected($filterStatus === $status)>
++                {{ \App\Models\Order::STATUS_LABELS[$status] }}
++            </option>
++        @endforeach
+     </select>
+     <button type="submit" class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark">Cari</button>
+ </form>
+@@ -64,9 +70,11 @@
+                             @method('PATCH')
+                             <select name="status" onchange="this.form.submit()"
+                                     class="rounded-lg border border-line bg-white px-2 py-1.5 text-xs">
+-                                <option value="pending" @selected($order->status === 'pending')>Pending</option>
+-                                <option value="paid" @selected($order->status === 'paid')>Paid</option>
+-                                <option value="cancelled" @selected($order->status === 'cancelled')>Cancelled</option>
++                                @foreach (\App\Models\Order::STATUSES as $status)
++                                    <option value="{{ $status }}" @selected($order->status === $status)>
++                                        {{ \App\Models\Order::STATUS_LABELS[$status] }}
++                                    </option>
++                                @endforeach
+                             </select>
+                         </form>
+                     </td>

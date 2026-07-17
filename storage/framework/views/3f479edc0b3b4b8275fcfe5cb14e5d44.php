@@ -1,30 +1,30 @@
 <?php
     $heroSlides = [
         [
-            'title' => 'Beauty in Every Detail',
+            'title' => 'Keindahan dalam Setiap Detail',
             'subtitle' => 'Nail Art - Brow Bomber - Skincare',
             'image' => 'hero-1.jpg',
-            'primaryLabel' => 'Book Now',
+            'primaryLabel' => 'Pesan Sekarang',
             'primaryRoute' => route('booking.create'),
-            'secondaryLabel' => 'Shop Products',
+            'secondaryLabel' => 'Belanja Produk',
             'secondaryRoute' => route('products.index'),
         ],
         [
-            'title' => 'Soft Glam, Calm Space',
+            'title' => 'Glamor yang Lembut, Ruang yang Tenang',
             'subtitle' => 'Hair Ritual - Skin Care - Self Pamper',
             'image' => 'hero-2.jpg',
-            'primaryLabel' => 'Reserve Session',
+            'primaryLabel' => 'Pesan Sesi',
             'primaryRoute' => route('booking.create'),
-            'secondaryLabel' => 'View Services',
+            'secondaryLabel' => 'Lihat Layanan',
             'secondaryRoute' => route('services.index'),
         ],
         [
-            'title' => 'Curated Beauty Moments',
+            'title' => 'Momen Kecantikan Pilihan',
             'subtitle' => 'Premium Touch - Warm Experience - Refined Results',
             'image' => 'hero-3.jpg',
-            'primaryLabel' => 'Book Now',
+            'primaryLabel' => 'Pesan Sekarang',
             'primaryRoute' => route('booking.create'),
-            'secondaryLabel' => 'Explore Products',
+            'secondaryLabel' => 'Jelajahi Produk',
             'secondaryRoute' => route('products.index'),
         ],
     ];
@@ -125,7 +125,7 @@
 
 <section class="mx-auto max-w-6xl px-6 py-20">
     <div class="text-center">
-        <p class="text-xs font-medium uppercase tracking-[0.3em] text-accent">Curated Services</p>
+        <p class="text-xs font-medium uppercase tracking-[0.3em] text-accent">Layanan Terkurasi</p>
         <h2 class="mt-3 font-serif text-3xl font-semibold text-ink">Perawatan yang terasa lembut, presisi, dan premium.</h2>
     </div>
 
@@ -136,7 +136,7 @@
             <div class="p-6">
                 <h3 class="font-serif text-lg font-semibold text-ink">Nail Art</h3>
                 <p class="mt-2 text-sm text-ink-muted">Detail manicure dan gel polish dengan hasil rapi, glossy, dan tahan lama.</p>
-                <a href="<?php echo e(route('services.index')); ?>" class="mt-3 inline-block text-sm font-medium text-accent hover:underline">Explore &rarr;</a>
+                <a href="<?php echo e(route('services.index')); ?>" class="mt-3 inline-block text-sm font-medium text-accent hover:underline">Jelajahi &rarr;</a>
             </div>
         </article>
 
@@ -146,7 +146,7 @@
             <div class="p-6">
                 <h3 class="font-serif text-lg font-semibold text-ink">Face Treatment</h3>
                 <p class="mt-2 text-sm text-ink-muted">Brightening facial dan skin ritual dengan tekstur lembut dan hasil segar.</p>
-                <a href="<?php echo e(route('services.index')); ?>" class="mt-3 inline-block text-sm font-medium text-accent hover:underline">Explore &rarr;</a>
+                <a href="<?php echo e(route('services.index')); ?>" class="mt-3 inline-block text-sm font-medium text-accent hover:underline">Jelajahi &rarr;</a>
             </div>
         </article>
     </div>
@@ -157,10 +157,10 @@
     <div class="mx-auto max-w-6xl px-6">
         <div class="flex items-end justify-between">
             <div>
-                <p class="text-xs font-medium uppercase tracking-[0.3em] text-accent">Skincare Rituals</p>
+                <p class="text-xs font-medium uppercase tracking-[0.3em] text-accent">Lihat Selengkapnya</p>
                 <h2 class="mt-3 font-serif text-3xl font-semibold text-ink">Produk pilihan untuk sentuhan akhir yang bersih.</h2>
             </div>
-            <a href="<?php echo e(route('products.index')); ?>" class="hidden text-sm font-medium text-accent hover:underline sm:block">See all &rarr;</a>
+            <a href="<?php echo e(route('products.index')); ?>" class="hidden text-sm font-medium text-accent hover:underline sm:block">Jelajahi Produk &rarr;</a>
         </div>
 
         <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -186,7 +186,7 @@
 <section class="mx-auto max-w-6xl px-6 py-20">
     <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
         <div>
-            <p class="text-xs font-medium uppercase tracking-[0.3em] text-accent">A Sanctuary for the Senses</p>
+            <p class="text-xs font-medium uppercase tracking-[0.3em] text-accent">Rasakan Rangkaiannya</p>
             <h2 class="mt-3 font-serif text-3xl font-semibold text-ink">Tempat di mana treatment terasa tenang sebelum terasa indah.</h2>
             <p class="mt-4 text-sm leading-relaxed text-ink-muted">
                 Kami merancang setiap layanan agar terasa pelan, hangat, dan berkelas. Dari konsultasi singkat sampai
@@ -196,15 +196,15 @@
             <div class="mt-8 grid grid-cols-3 gap-4 border-t border-line pt-6">
                 <div>
                     <p class="font-serif text-2xl font-semibold text-ink">500+</p>
-                    <p class="text-xs text-ink-muted">happy clients</p>
+                    <p class="text-xs text-ink-muted">klien yang puas</p>
                 </div>
                 <div>
                     <p class="font-serif text-2xl font-semibold text-ink">8+</p>
-                    <p class="text-xs text-ink-muted">years refined</p>
+                    <p class="text-xs text-ink-muted">jam terbang</p>
                 </div>
                 <div>
                     <p class="font-serif text-2xl font-semibold text-ink">3</p>
-                    <p class="text-xs text-ink-muted">signature rituals</p>
+                    <p class="text-xs text-ink-muted">Layanan Khas</p>
                 </div>
             </div>
         </div>
@@ -218,13 +218,13 @@
 <section class="pb-24">
     <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 rounded-3xl bg-ink px-8 py-10 text-center sm:flex-row sm:text-left">
         <div>
-            <p class="text-xs font-medium uppercase tracking-[0.3em] text-white/60">Reserve Your Moment</p>
+            <p class="text-xs font-medium uppercase tracking-[0.3em] text-white/60">MULAI PERAWATAN ANDA</p>
             <h3 class="mt-2 font-serif text-2xl font-semibold text-white">Siap untuk sesi perawatan berikutnya?</h3>
             <p class="mt-1 text-sm text-white/70">Pilih layanan favoritmu lalu atur jadwal yang paling nyaman.</p>
         </div>
         <a href="<?php echo e(route('booking.create')); ?>"
            class="shrink-0 rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-accent-dark">
-            Make Reservation
+            Mulai Pengalaman Anda
         </a>
     </div>
 </section>
