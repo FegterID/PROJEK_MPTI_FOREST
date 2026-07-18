@@ -46,9 +46,10 @@
                                     <p class="font-semibold text-ink"><?php echo e($service->formattedPrice()); ?></p>
                                     <p class="text-xs text-ink-muted"><?php echo e($service->duration); ?> menit</p>
                                 </div>
-                                <span class="rounded-full bg-surface-light px-3 py-1 text-xs text-ink-muted">
-                                    Booking segera hadir
-                                </span>
+                                <a href="<?php echo e(route('booking.create', ['service' => $service->name ?? $service['name'] ?? ''])); ?>"
+                                class="inline-block rounded-full bg-accent px-4 py-2 text-xs font-medium text-white shadow-sm transition-all duration-200 hover:bg-accent-dark hover:shadow focus:outline-none">
+                                    Booking Sekarang
+                                </a>
                             </div>
                         </div>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
