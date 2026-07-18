@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Product;
 use App\Models\Service;
+use App\Models\Order;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -27,8 +28,8 @@ class DashboardController extends Controller
             ? '-'.round(($lowStockAlert / $totalActiveProducts) * 100).'%'
             : '0%';
 
-        $monthlyRevenue = $this->revenueForMonth(now());
-        $lastMonthRevenue = $this->revenueForMonth(now()->subMonthNoOverflow());
+        $monthlyRevenue = $this->revenueForMonth(Carbon::now());
+    $lastMonthRevenue = $this->revenueForMonth(Carbon::now()->subMonthNoOverflow());
 
         $revenueGrowthPct = $lastMonthRevenue > 0
             ? (int) round((($monthlyRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100)
@@ -54,6 +55,7 @@ class DashboardController extends Controller
         $maxPopularity = max(1, (int) ($servicePopularity->max('total') ?? 1));
 
         $recentBookings = Booking::orderByDesc('id')->limit(8)->get();
+        $recentOrders = Order::orderByDesc('id')->limit(5)->get();
 
         return view('admin.dashboard', [
             'pendingOrders' => $pendingOrders,
@@ -66,6 +68,7 @@ class DashboardController extends Controller
             'servicePopularity' => $servicePopularity,
             'maxPopularity' => $maxPopularity,
             'recentBookings' => $recentBookings,
+            'recentOrders' => $recentOrders,
             'totalServices' => Service::count(),
         ]);
     }

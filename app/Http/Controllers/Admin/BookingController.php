@@ -14,19 +14,29 @@ use App\Notifications\BookingStatusNotification;
 class BookingController extends Controller
 {
     /**
-     * Port dari pages/admin/bookings.php. Filter tanggal/layanan
-     * disederhanakan jadi filter status saja + pagination bawaan Laravel.
+     * Menampilkan daftar booking dengan fitur filter status
+     * dan pencarian berdasarkan nama pelanggan atau WhatsApp.
      */
     public function index(Request $request): View
     {
         $filterStatus = trim((string) $request->query('status', ''));
+        $search = trim((string) $request->query('q', ''));
 
         $bookings = Booking::query()
+            // Filter berdasarkan status jika dipilih
             ->when($filterStatus !== '', fn($q) => $q->where('status', $filterStatus))
+
+            // FITUR BARU: Pencarian nama pelanggan atau WhatsApp
+            ->when($search !== '', function ($q) use ($search) {
+                return $q->where(function ($query) use ($search) {
+                    $query->where('customer_name', 'like', "%{$search}%")
+                          ->orWhere('whatsapp', 'like', "%{$search}%");
+                });
+            })
             ->orderByDesc('booking_date')
             ->orderByDesc('booking_time')
             ->paginate(10)
-            ->withQueryString();
+            ->withQueryString(); // Memastikan parameter 'q' & 'status' tetap ada saat pindah page paginasi
 
         return view('admin.bookings.index', [
             'bookings' => $bookings,
@@ -46,7 +56,7 @@ class BookingController extends Controller
 
         $booking->update(['status' => $validated['status']]);
 
-        if ($booking->wasChanged('status')) { // [BARU] cuma kirim kalau status beneran berubah
+        if ($booking->wasChanged('status')) {
             $booking->user?->notify(new BookingStatusNotification($booking));
         }
 

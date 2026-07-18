@@ -1,93 +1,130 @@
-<?php $__env->startSection('title', 'Product Stock Management'); ?>
+<?php $__env->startSection('title', 'Manajemen Persediaan Produk'); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="grid gap-8 lg:grid-cols-[1fr_360px]">
+<!-- SUB-HEADER INFORMASIONAL -->
+<div class="mb-6">
+    <p class="text-xs text-ink-muted">Pantau ketersediaan stok barang ritel, perbarui harga komoditas, serta kelola katalog produk aktif toko Anda.</p>
+</div>
+
+<!-- GRID SYSTEM LAYOUT UTAMA -->
+<div class="grid gap-6 lg:grid-cols-[1fr_380px] items-start">
+
     
-    <div class="overflow-hidden rounded-xl border border-line bg-surface">
-        <table class="w-full text-left text-sm">
-            <thead class="bg-surface-light text-xs uppercase tracking-wide text-ink-muted">
-                <tr>
-                    <th class="px-4 py-3">Produk</th>
-                    <th class="px-4 py-3">Kategori</th>
-                    <th class="px-4 py-3">Harga</th>
-                    <th class="px-4 py-3 text-center">Stok</th>
-                    <th class="px-4 py-3 text-center">Status</th>
-                    <th class="px-4 py-3 text-right">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-line">
-                <?php $__empty_1 = true; $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <tr class="<?php echo e($editingProduct?->id === $product->id ? 'bg-accent/5' : ''); ?> <?php echo e(! $product->is_active ? 'opacity-50' : ''); ?>">
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-3">
-                                <?php if($product->imageUrl()): ?>
-                                    <img src="<?php echo e($product->imageUrl()); ?>" alt="<?php echo e($product->name); ?>" class="h-10 w-10 shrink-0 rounded-lg border border-line object-cover">
-                                <?php else: ?>
-                                    <div class="h-10 w-10 shrink-0 rounded-lg bg-surface-light"></div>
-                                <?php endif; ?>
-                                <div>
-                                    <p class="font-medium text-ink"><?php echo e($product->name); ?></p>
-                                    <p class="text-xs text-ink-muted line-clamp-1"><?php echo e(\Illuminate\Support\Str::limit($product->description, 64)); ?></p>
+    <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-surface-light/60 text-[10px] font-bold uppercase tracking-wider text-ink-muted/80 border-b border-line">
+                    <tr>
+                        <th class="px-5 py-4">Detail Produk</th>
+                        <th class="px-5 py-4">Kategori</th>
+                        <th class="px-5 py-4">Harga Jual</th>
+                        <th class="px-5 py-4 text-center">Stok</th>
+                        <th class="px-5 py-4 text-center">Status Kontrol</th>
+                        <th class="px-5 py-4 text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line/60">
+                    <?php $__empty_1 = true; $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <tr class="hover:bg-surface-light/30 transition-colors duration-150 <?php echo e($editingProduct?->id === $product->id ? 'bg-accent/5' : ''); ?> <?php echo e(! $product->is_active ? 'opacity-60 bg-surface-light/10' : ''); ?>">
+
+                            <!-- Thumbnail & Keterangan Text -->
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-3.5">
+                                    <?php if($product->imageUrl()): ?>
+                                        <img src="<?php echo e($product->imageUrl()); ?>" alt="<?php echo e($product->name); ?>" class="h-11 w-11 shrink-0 rounded-xl border border-line object-cover shadow-sm">
+                                    <?php else: ?>
+                                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-light text-ink-muted/50 border border-line">
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="max-w-xs">
+                                        <p class="font-medium text-ink text-xs tracking-tight"><?php echo e($product->name); ?></p>
+                                        <p class="text-[10px] text-ink-muted/80 mt-0.5 line-clamp-1" title="<?php echo e($product->description); ?>"><?php echo e(\Illuminate\Support\Str::limit($product->description, 60)); ?></p>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="rounded bg-accent/10 px-2 py-1 text-xs font-medium text-accent"><?php echo e($product->category); ?></span>
-                        </td>
-                        <td class="px-4 py-3 text-ink-muted"><?php echo e($product->formattedPrice()); ?></td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="rounded px-2 py-1 text-xs <?php echo e($product->stock > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'); ?>">
-                                <?php echo e($product->stock > 0 ? $product->stock : 'Habis'); ?>
+                            </td>
 
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <form method="POST" action="<?php echo e(route('admin.products.toggle', $product)); ?>">
-                                <?php echo csrf_field(); ?>
-                                <?php echo method_field('PATCH'); ?>
-                                <button type="submit"
-                                        class="rounded-md px-3 py-1.5 text-xs font-medium text-white <?php echo e($product->is_active ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400 hover:bg-gray-500'); ?>">
-                                    <?php echo e($product->is_active ? 'Aktif' : 'Nonaktif'); ?>
+                            <!-- Kategori Badge -->
+                            <td class="px-5 py-4">
+                                <span class="inline-flex rounded-xl bg-accent/10 px-2.5 py-1 text-[10px] font-bold tracking-wide text-accent uppercase">
+                                    <?php echo e($product->category); ?>
 
-                                </button>
-                            </form>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex justify-end gap-2">
-                                <a href="<?php echo e(route('admin.products.index', ['edit' => $product->id])); ?>"
-                                   class="rounded-md border border-line px-3 py-1.5 text-xs font-medium text-ink hover:border-accent hover:text-accent">
-                                    Edit
-                                </a>
-                                <form method="POST" action="<?php echo e(route('admin.products.destroy', $product)); ?>"
-                                      onsubmit="return confirm('Hapus produk <?php echo e($product->name); ?>?');">
+                                </span>
+                            </td>
+
+                            <!-- Harga -->
+                            <td class="px-5 py-4 text-xs font-semibold text-ink">
+                                <?php echo e($product->formattedPrice()); ?>
+
+                            </td>
+
+                            <!-- Status Indikator Stok -->
+                            <td class="px-5 py-4 text-center">
+                                <?php if($product->stock > 0): ?>
+                                    <span class="inline-flex items-center rounded-xl bg-emerald-50 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-700 border border-emerald-100">
+                                        <?php echo e($product->stock); ?> Item
+                                    </span>
+                                <?php else: ?>
+                                    <span class="inline-flex items-center rounded-xl bg-rose-50 px-2.5 py-1 text-[10px] font-bold tracking-wide text-rose-700 border border-rose-100">
+                                        Habis
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+
+                            <!-- Toggle Interaktif Status -->
+                            <td class="px-5 py-4 text-center">
+                                <form method="POST" action="<?php echo e(route('admin.products.toggle', $product)); ?>">
                                     <?php echo csrf_field(); ?>
-                                    <?php echo method_field('DELETE'); ?>
+                                    <?php echo method_field('PATCH'); ?>
                                     <button type="submit"
-                                            class="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
-                                        Hapus
+                                            class="inline-flex items-center rounded-xl px-3 py-1.5 text-[10px] font-bold tracking-wide shadow-sm transition-all active:scale-95 text-white
+                                            <?php echo e($product->is_active ? 'bg-sky-600 hover:bg-sky-500 shadow-sky-600/10' : 'bg-ink-muted/60 hover:bg-ink-muted shadow-sm'); ?>">
+                                        <?php echo e($product->is_active ? 'Aktif' : 'Nonaktif'); ?>
+
                                     </button>
                                 </form>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <tr>
-                        <td colspan="6" class="px-4 py-10 text-center text-ink-muted">Belum ada produk.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                            </td>
+
+                            <!-- Kelompok Tombol Aksi -->
+                            <td class="px-5 py-4">
+                                <div class="flex justify-end gap-2">
+                                    <a href="<?php echo e(route('admin.products.index', ['edit' => $product->id])); ?>"
+                                       class="inline-flex items-center gap-1 rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink shadow-sm transition-all hover:border-accent hover:text-accent">
+                                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                        Edit
+                                    </a>
+                                    <form method="POST" action="<?php echo e(route('admin.products.destroy', $product)); ?>"
+                                          onsubmit="return confirm('Hapus entri produk <?php echo e($product->name); ?> dari sistem?');">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('DELETE'); ?>
+                                        <button type="submit"
+                                                class="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-medium text-rose-600 shadow-sm transition-all hover:bg-rose-50 hover:border-rose-300">
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr>
+                            <td colspan="6" class="px-5 py-12 text-center text-xs text-ink-muted">Belum ada riwayat koleksi produk ritel tersimpan.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     
-    <div class="h-fit rounded-xl border border-line bg-surface p-5">
-        <h2 class="font-serif text-lg font-semibold text-ink">
-            <?php echo e($editingProduct ? 'Edit Produk #'.$editingProduct->id : 'Tambah Produk Baru'); ?>
+    <div class="h-fit rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-ink border-b border-line pb-3.5">
+            <?php echo e($editingProduct ? 'Edit Entri Produk #'.$editingProduct->id : 'Registrasi Produk Baru'); ?>
 
         </h2>
 
         <?php if($errors->any()): ?>
-            <div class="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div class="mt-4 rounded-xl border border-rose-200 bg-rose-50/70 px-4 py-3 text-xs font-medium text-rose-700">
                 <ul class="list-inside list-disc space-y-1">
                     <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <li><?php echo e($error); ?></li>
@@ -103,63 +140,76 @@
             <?php echo csrf_field(); ?>
             <?php if($editingProduct): ?> <?php echo method_field('PUT'); ?> <?php endif; ?>
 
+            <!-- Input Image File -->
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wide text-ink-muted">Gambar Produk</label>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-ink-muted/80">Unggah Gambar Produk</label>
                 <?php if($editingProduct?->image): ?>
-                    <img src="<?php echo e($editingProduct->imageUrl()); ?>" alt="<?php echo e($editingProduct->name); ?>"
-                         class="mt-2 h-24 w-24 rounded-lg border border-line object-cover">
+                    <div class="relative inline-block mt-2">
+                        <img src="<?php echo e($editingProduct->imageUrl()); ?>" alt="<?php echo e($editingProduct->name); ?>"
+                             class="h-20 w-20 rounded-xl border border-line object-cover shadow-sm">
+                    </div>
                 <?php endif; ?>
                 <input type="file" name="image" accept="image/*"
-                       class="mt-2 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-accent/10 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-accent">
-                <p class="mt-1 text-xs text-ink-muted">JPG/PNG/WebP, maks 2MB. <?php echo e($editingProduct ? 'Kosongkan kalau tidak ingin ganti gambar.' : ''); ?></p>
+                       class="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-xs text-ink shadow-sm file:mr-3 file:rounded-lg file:border-0 file:bg-accent/10 file:px-3 file:py-1 file:text-[11px] file:font-bold file:text-accent file:transition-all hover:file:bg-accent/20 cursor-pointer">
+                <p class="mt-1 text-[10px] text-ink-muted/80">Kompresi JPG, PNG, atau WebP (Maks. 2MB). <?php echo e($editingProduct ? 'Biarkan kosong jika tetap menggunakan aset lama.' : ''); ?></p>
             </div>
 
+            <!-- Input Nama -->
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wide text-ink-muted">Nama Produk</label>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-ink-muted/80">Nama Varian Produk</label>
                 <input type="text" name="name" value="<?php echo e(old('name', $editingProduct->name ?? '')); ?>" required
-                       class="mt-2 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20">
+                       class="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-2 text-xs font-medium text-ink shadow-sm transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
             </div>
 
+            <!-- Input Kategori -->
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wide text-ink-muted">Kategori</label>
-                <select name="category" required
-                        class="mt-2 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20">
-                    <?php $__currentLoopData = $validCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($category); ?>" <?php if(old('category', $editingProduct->category ?? '') === $category): echo 'selected'; endif; ?>>
-                            <?php echo e($category); ?>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-ink-muted/80">Kategori Klasifikasi</label>
+                <div class="relative">
+                    <select name="category" required
+                            class="mt-2 w-full appearance-none rounded-xl border border-line bg-surface pl-4 pr-10 py-2 text-xs font-medium text-ink shadow-sm transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer">
+                        <?php $__currentLoopData = $validCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($category); ?>" <?php if(old('category', $editingProduct->category ?? '') === $category): echo 'selected'; endif; ?>>
+                                <?php echo e($category); ?>
 
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
+                            </option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 pt-2 text-ink-muted">
+                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                </div>
             </div>
 
+            <!-- Input Deskripsi -->
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wide text-ink-muted">Deskripsi</label>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-ink-muted/80">Deskripsi Lengkap</label>
                 <textarea name="description" rows="3" required
-                          class="mt-2 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"><?php echo e(old('description', $editingProduct->description ?? '')); ?></textarea>
+                          class="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-2 text-xs font-medium text-ink shadow-sm transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent resize-none"><?php echo e(old('description', $editingProduct->description ?? '')); ?></textarea>
             </div>
 
+            <!-- Input Harga & Stok (Inline Row) -->
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wide text-ink-muted">Harga (Rp)</label>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-ink-muted/80">Harga Satuan (Rp)</label>
                     <input type="number" name="price" min="1" value="<?php echo e(old('price', $editingProduct->price ?? '')); ?>" required
-                           class="mt-2 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20">
+                           class="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-2 text-xs font-semibold text-ink shadow-sm transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wide text-ink-muted">Stok</label>
-                    <input type="number" name="stock" min="0" value="<?php echo e(old('stock', $editingProduct->stock ?? 0)); ?>"
-                           class="mt-2 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-ink-muted/80">Jumlah Kuantitas Stok</label>
+                    <input type="number" name="stock" min="0" value="<?php echo e(old('stock', $editingProduct->stock ?? 0)); ?>" required
+                           class="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-2 text-xs font-semibold text-ink shadow-sm transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
                 </div>
             </div>
 
+            <!-- Tombol Aksi Form -->
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="flex-1 rounded-lg bg-accent py-2.5 text-sm font-medium text-white hover:bg-accent-dark">
-                    <?php echo e($editingProduct ? 'Simpan Perubahan' : '+ Tambah Produk'); ?>
+                <button type="submit" class="flex-1 rounded-xl bg-accent py-2.5 text-xs font-bold text-white shadow-sm shadow-accent/20 transition-all hover:opacity-90 active:scale-95">
+                    <?php echo e($editingProduct ? 'Simpan Perubahan' : 'Daftarkan Produk'); ?>
 
                 </button>
                 <?php if($editingProduct): ?>
                     <a href="<?php echo e(route('admin.products.index')); ?>"
-                       class="rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-ink hover:border-accent">
+                       class="rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-bold text-ink shadow-sm transition-all hover:bg-surface-light">
                         Batal
                     </a>
                 <?php endif; ?>
