@@ -5,12 +5,12 @@
 @section('content')
 <!-- SUB-HEADER INFORMASIONAL -->
 <div class="mb-6">
-    <p class="text-xs text-ink-muted">Selamat datang kembali. Berikut adalah rangkuman performa operasional toko dan layanan Anda hari ini.</p>
+    <p class="text-xs text-ink-muted">Selamat datang kembali. Berikut adalah rangkuman performa gabungan antrean operasional layanan dan transaksi produk ritel toko Anda hari ini.</p>
 </div>
 
 <!-- TOP STATS CARDS -->
 <div class="grid gap-6 sm:grid-cols-3">
-    <!-- Card 1: Pending Orders -->
+    <!-- Card 1: Pending Bookings -->
     <article class="relative group rounded-2xl border border-line bg-surface p-6 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:-translate-y-0.5">
         <div class="flex items-center justify-between">
             <p class="text-[11px] font-semibold uppercase tracking-wider text-ink-muted/80">Pending Bookings</p>
@@ -35,7 +35,7 @@
         <p class="mt-2 text-[11px] text-ink-muted">Item ritel dengan jumlah sisa stok &le; 5 unit.</p>
     </article>
 
-    <!-- Card 3: Monthly Revenue -->
+    <!-- Card 3: Combined Monthly Revenue (Sinkron Layanan & Produk) -->
     <article class="relative overflow-hidden rounded-2xl bg-ink p-6 text-white shadow-lg shadow-ink/5 ring-1 ring-white/10">
         <div class="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/[0.03] blur-2xl pointer-events-none"></div>
         <div class="flex items-center justify-between">
@@ -45,7 +45,7 @@
             </span>
         </div>
         <p class="mt-4 text-3xl font-bold tracking-tight">Rp {{ number_format($monthlyRevenue, 0, ',', '.') }}</p>
-        <p class="mt-3 text-[11px] text-white/50 border-t border-white/10 pt-2.5">Akumulasi pendapatan mtd terkonfirmasi.</p>
+        <p class="mt-3 text-[11px] text-white/50 border-t border-white/10 pt-2.5">Total akumulasi MTD terkonfirmasi (Jasa + Produk).</p>
     </article>
 </div>
 
@@ -183,7 +183,7 @@
                                 <span class="inline-block px-2.5 py-0.5 text-[10px] font-semibold rounded-full uppercase tracking-wider
                                     {{ $orderStatus === 'pending' ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/10' : '' }}
                                     {{ $orderStatus === 'paid' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/10' : '' }}
-                                    {{ $orderStatus === 'completed' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/10' : '' }}
+                                    {{ $orderStatus === 'completed' ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-600/10' : '' }}
                                     {{ !in_array($orderStatus, ['pending', 'paid', 'completed']) ? 'bg-zinc-50 text-zinc-600 ring-1 ring-zinc-500/10' : '' }}
                                 ">
                                     {{ $order->status }}

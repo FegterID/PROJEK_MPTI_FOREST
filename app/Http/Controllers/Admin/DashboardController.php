@@ -13,72 +13,105 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    /**
-     * Port dari pages/admin/dashboard.php. Query month-over-month revenue
-     * & grafik mingguan disederhanakan (tanpa JOIN service price yang agak
-     * rapuh di versi asli), tapi angka intinya sama.
-     */
     public function index(): View
     {
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
+
+        // 1. Akumulasi Pendapatan Bulan Ini (Layanan + Produk Ritel)
+        // Memakai JOIN ke tabel services untuk mengambil data kolom 'price' yang valid
+        $serviceRevenue = Booking::whereIn('bookings.status', ['paid', 'confirmed', 'success', 'completed'])
+            ->whereBetween('bookings.booking_date', [$startOfMonth, $endOfMonth])
+            ->join('services', 'services.name', '=', 'bookings.service_name')
+            ->sum('services.price');
+
+        $productRevenue = Order::whereIn('status', ['paid', 'completed'])
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->sum('total');
+
+        $monthlyRevenue = $serviceRevenue + $productRevenue;
+
+        // 2. Hitung Growth MoM (Month-over-Month) Gabungan
+        $currentMonthRevenue = $this->revenueForMonth(Carbon::now());
+        $lastMonthRevenue = $this->revenueForMonth(Carbon::now()->subMonth());
+
+        if ($lastMonthRevenue > 0) {
+            $growth = (($currentMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100;
+            $growthLabel = ($growth >= 0 ? '+' : '') . round($growth, 1) . '%';
+        } else {
+            $growthLabel = '+0%';
+        }
+
+        // 3. Top Stats Cards Data
         $pendingOrders = Booking::where('status', 'pending')->count();
-        $lowStockAlert = Product::where('is_active', true)->where('stock', '<=', 5)->count();
-        $totalActiveProducts = Product::where('is_active', true)->count();
 
-        $lowStockPct = $totalActiveProducts > 0 && $lowStockAlert > 0
-            ? '-'.round(($lowStockAlert / $totalActiveProducts) * 100).'%'
-            : '0%';
+        $totalProducts = Product::count();
+        $lowStockAlert = Product::where('stock', '<=', 5)->count();
+        $lowStockPct = $totalProducts > 0 ? round(($lowStockAlert / $totalProducts) * 100) . '%' : '0%';
 
-        $monthlyRevenue = $this->revenueForMonth(Carbon::now());
-    $lastMonthRevenue = $this->revenueForMonth(Carbon::now()->subMonthNoOverflow());
+        // 4. Grafik Booking 7 Hari Terakhir
+        $weeklyBookings = [];
+        $maxWeekly = 1;
 
-        $revenueGrowthPct = $lastMonthRevenue > 0
-            ? (int) round((($monthlyRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100)
-            : 0;
-        $growthLabel = ($revenueGrowthPct >= 0 ? '+' : '').$revenueGrowthPct.'%';
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $count = Booking::whereDate('booking_date', $date->toDateString())->count();
 
-        $weeklyBookings = collect(range(6, 0))->map(function (int $daysAgo) {
-            $date = now()->subDays($daysAgo);
-
-            return [
-                'label' => $date->translatedFormat('D'),
-                'value' => Booking::whereDate('booking_date', $date->toDateString())->count(),
+            $weeklyBookings[] = [
+                'label' => strtoupper($date->isoFormat('ddd')),
+                'value' => $count
             ];
-        });
-        $maxWeekly = max(1, $weeklyBookings->max('value'));
 
-        $servicePopularity = Booking::select('service_name', DB::raw('COUNT(*) as total'))
-            ->where('booking_date', '>=', now()->subDays(30))
+            if ($count > $maxWeekly) {
+                $maxWeekly = $count;
+            }
+        }
+
+        // 5. Layanan Terpopuler (30 Hari Terakhir)
+        $servicePopularity = Booking::select('service_name', DB::raw('count(*) as total'))
+            ->where('booking_date', '>=', Carbon::now()->subDays(30))
             ->groupBy('service_name')
             ->orderByDesc('total')
-            ->limit(4)
+            ->take(4)
             ->get();
-        $maxPopularity = max(1, (int) ($servicePopularity->max('total') ?? 1));
 
-        $recentBookings = Booking::orderByDesc('id')->limit(8)->get();
-        $recentOrders = Order::orderByDesc('id')->limit(5)->get();
+        $maxPopularity = $servicePopularity->max('total') ?? 1;
 
-        return view('admin.dashboard', [
-            'pendingOrders' => $pendingOrders,
-            'lowStockAlert' => $lowStockAlert,
-            'lowStockPct' => $lowStockPct,
-            'monthlyRevenue' => $monthlyRevenue,
-            'growthLabel' => $growthLabel,
-            'weeklyBookings' => $weeklyBookings,
-            'maxWeekly' => $maxWeekly,
-            'servicePopularity' => $servicePopularity,
-            'maxPopularity' => $maxPopularity,
-            'recentBookings' => $recentBookings,
-            'recentOrders' => $recentOrders,
-            'totalServices' => Service::count(),
-        ]);
+        // 6. Data Tabel Terbaru
+        $recentBookings = Booking::orderByDesc('created_at')->take(5)->get();
+        $recentOrders = Order::orderByDesc('created_at')->take(5)->get();
+
+        return view('admin.dashboard', compact(
+            'monthlyRevenue',
+            'pendingOrders',
+            'lowStockAlert',
+            'lowStockPct',
+            'growthLabel',
+            'weeklyBookings',
+            'maxWeekly',
+            'servicePopularity',
+            'maxPopularity',
+            'recentBookings',
+            'recentOrders'
+        ));
     }
 
+    /**
+     * Helper untuk menghitung total pendapatan gabungan pada bulan tertentu
+     */
     private function revenueForMonth(Carbon $month): int
     {
-        return (int) Booking::whereIn('bookings.status', ['confirmed', 'completed'])
+        $services = (int) Booking::whereIn('bookings.status', ['paid', 'confirmed', 'success', 'completed'])
             ->whereYear('bookings.booking_date', $month->year)
             ->whereMonth('bookings.booking_date', $month->month)
             ->join('services', 'services.name', '=', 'bookings.service_name')
             ->sum('services.price');
+
+        $products = (int) Order::whereIn('status', ['paid', 'completed'])
+            ->whereYear('created_at', $month->year)
+            ->whereMonth('created_at', $month->month)
+            ->sum('total');
+
+        return $services + $products;
     }
 }
