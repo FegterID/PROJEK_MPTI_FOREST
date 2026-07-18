@@ -39,7 +39,7 @@
     <article class="relative overflow-hidden rounded-2xl bg-ink p-6 text-white shadow-lg shadow-ink/5 ring-1 ring-white/10">
         <div class="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/[0.03] blur-2xl pointer-events-none"></div>
         <div class="flex items-center justify-between">
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-white/60">Monthly Revenue</p>
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-white/60">Pendapatan Bulanan</p>
             <span class="inline-block rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-medium tracking-wide backdrop-blur-sm">
                 {{ $growthLabel }}
             </span>
