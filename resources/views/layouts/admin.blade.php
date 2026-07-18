@@ -20,7 +20,7 @@
                 <!-- Branding Header -->
                 <div class="px-3 mb-8">
                     <p class="font-serif text-xl font-bold tracking-tight text-ink leading-tight">{{ $siteConfig['name'] }}</p>
-                    <p class="mt-1 text-[10px] font-bold uppercase tracking-widest text-ink-muted/70">Console Management</p>
+                    <p class="mt-1 text-[10px] font-bold uppercase tracking-widest text-ink-muted/70">Manajemen Konsol</p>
                 </div>
 
                 @php
