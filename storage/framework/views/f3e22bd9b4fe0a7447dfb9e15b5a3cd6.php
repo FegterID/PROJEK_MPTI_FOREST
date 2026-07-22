@@ -94,8 +94,19 @@
 
                         <!-- HARGA LAYANAN -->
                         <td class="px-6 py-4 text-xs font-bold text-ink">
-                            Rp <?php echo e(number_format($booking->service->price ?? 0, 0, ',', '.')); ?>
+                            <?php if($booking->price): ?>
+                                Rp <?php echo e(number_format($booking->price, 0, ',', '.')); ?>
 
+                            <?php elseif($booking->service?->price_range): ?>
+                                Rp <?php echo e(number_format((float) $booking->service->price_range, 0, ',', '.')); ?>
+
+                            <?php elseif($booking->service?->formattedPrice()): ?>
+                                <?php echo e($booking->service->formattedPrice()); ?>
+
+                            <?php else: ?>
+                                Rp <?php echo e(number_format($booking->service->price ?? 0, 0, ',', '.')); ?>
+
+                            <?php endif; ?>
                         </td>
 
                         <!-- Jadwal -->

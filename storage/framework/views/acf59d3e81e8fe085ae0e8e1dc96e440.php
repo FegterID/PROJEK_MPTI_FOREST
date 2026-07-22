@@ -163,7 +163,7 @@
                             </div>
                             <h3 class="mt-2 font-serif text-lg font-semibold text-ink"><?php echo e($booking->service_name); ?></h3>
 
-                            <div class="mt-3 grid grid-cols-3 gap-4 text-sm">
+                            <div class="mt-3 grid grid-cols-4 gap-4 text-sm">
                                 <div>
                                     <p class="text-xs text-ink-muted">Tanggal</p>
                                     <p class="text-ink"><?php echo e($booking->booking_date->translatedFormat('d M Y')); ?></p>
@@ -171,6 +171,10 @@
                                 <div>
                                     <p class="text-xs text-ink-muted">Jam</p>
                                     <p class="text-ink"><?php echo e($booking->booking_time->format('H:i')); ?></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-ink-muted">Harga</p>
+                                    <p class="text-ink">Rp <?php echo e(number_format($booking->price ?? $booking->service->price ?? 0, 0, ',', '.')); ?></p>
                                 </div>
                                 <div>
                                     <p class="text-xs text-ink-muted">Dibuat</p>

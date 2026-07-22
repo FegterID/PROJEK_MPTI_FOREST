@@ -45,8 +45,7 @@
                                 </div>
 
                                 <div class="mt-5 flex items-center justify-between border-t border-line pt-4">
-                                    <p class="font-semibold text-ink"><?php echo e($product->displayPrice()); ?></p>
-
+                                    <p class="font-semibold text-ink">Rp <?php echo e(number_format($product->price, 0, ',', '.')); ?></p>
                                     <div class="flex gap-2">
                                         <a href="<?php echo e(route('products.show', $product)); ?>"
                                             class="rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink hover:border-accent hover:text-accent">
@@ -79,4 +78,5 @@
         <?php endif; ?>
     </section>
 <?php $__env->stopSection(); ?>
+
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /home/afegter/Fegas/SMT6/PROJEK_MPTI_FOREST/resources/views/products/index.blade.php ENDPATH**/ ?>

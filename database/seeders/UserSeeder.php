@@ -27,10 +27,10 @@ class UserSeeder extends Seeder
         );
 
         User::updateOrCreate(
-            ['email' => 'customer@example.com'],
+            ['email' => 'user@gmail.com'],
             [
                 'username' => '081234567890',
-                'password' => Hash::make('customer123'),
+                'password' => Hash::make('user123'),
                 'role' => 'customer',
                 'name' => 'Sinta Permata',
                 'address' => 'Jl. Kenanga No. 5, Jakarta',

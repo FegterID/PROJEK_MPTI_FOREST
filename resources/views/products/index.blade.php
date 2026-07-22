@@ -45,8 +45,7 @@
                                 </div>
 
                                 <div class="mt-5 flex items-center justify-between border-t border-line pt-4">
-                                    <p class="font-semibold text-ink">{{ $product->displayPrice() }}</p>
-
+                                    <p class="font-semibold text-ink">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
                                     <div class="flex gap-2">
                                         <a href="{{ route('products.show', $product) }}"
                                             class="rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink hover:border-accent hover:text-accent">
