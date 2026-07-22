@@ -94,15 +94,7 @@
 
                         <!-- HARGA LAYANAN -->
                         <td class="px-6 py-4 text-xs font-bold text-ink">
-                            @if ($booking->price)
-                                Rp {{ number_format($booking->price, 0, ',', '.') }}
-                            @elseif ($booking->service?->price_range)
-                                Rp {{ number_format((float) $booking->service->price_range, 0, ',', '.') }}
-                            @elseif ($booking->service?->formattedPrice())
-                                {{ $booking->service->formattedPrice() }}
-                            @else
-                                Rp {{ number_format($booking->service->price ?? 0, 0, ',', '.') }}
-                            @endif
+                            {{ $booking->display_price }}
                         </td>
 
                         <!-- Jadwal -->

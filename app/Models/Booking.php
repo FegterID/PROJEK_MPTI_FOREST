@@ -94,4 +94,20 @@ class Booking extends Model
 
         return $base.(str_contains($base, '?') ? '&' : '?')."text={$text}";
     }
+
+    public function getDisplayPriceAttribute()
+    {
+        // 1. Jika harga tersimpan langsung di transaksi booking
+        if ($this->price) {
+            return 'Rp ' . number_format($this->price, 0, ',', '.');
+        }
+
+        // 2. Jika mengambil dari relasi service
+        if ($this->service) {
+            return $this->service->formattedPrice();
+        }
+
+        return 'Rp 0';
+    }
+
 }
