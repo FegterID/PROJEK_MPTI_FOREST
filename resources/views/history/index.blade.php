@@ -174,7 +174,7 @@
                                 </div>
                                 <div>
                                     <p class="text-xs text-ink-muted">Harga</p>
-                                    <p class="text-ink">Rp {{ number_format($booking->price ?? $booking->service->price ?? 0, 0, ',', '.') }}</p>
+                                    <p class="text-ink">{{ $booking->display_price }}</p>
                                 </div>
                                 <div>
                                     <p class="text-xs text-ink-muted">Dibuat</p>
